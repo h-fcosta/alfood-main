@@ -8,6 +8,20 @@ import Restaurante from "./Restaurante";
 const ListaRestaurantes = () => {
   const [restaurantes, setRestaurantes] = useState<IRestaurante[]>([]);
   const [proximaPagina, setProximaPagina] = useState("");
+  const [paginaAnterior, setPaginaAnterior] = useState("");
+
+  const carregarDados = (url: string) => {
+    axios
+      .get<IPaginacao<IRestaurante>>(url)
+      .then((resposta) => {
+        setRestaurantes(resposta.data.results);
+        setProximaPagina(resposta.data.next);
+        setPaginaAnterior(resposta.data.previous);
+      })
+      .catch((erro) => {
+        console.log(erro);
+      });
+  };
 
   useEffect(() => {
     //obter restaurantes
@@ -22,6 +36,7 @@ const ListaRestaurantes = () => {
       .catch((erro) => {
         console.log(erro);
       });
+    carregarDados("http://localhost:8000/api/v1/restaurantes/");
   }, []);
 
   const verMais = () => {
@@ -44,7 +59,20 @@ const ListaRestaurantes = () => {
       {restaurantes?.map((item) => (
         <Restaurante restaurante={item} key={item.id} />
       ))}
-      {proximaPagina && <button onClick={verMais}>Ver Mais</button>}
+      {
+        <button
+          onClick={() => carregarDados(paginaAnterior)}
+          disabled={!paginaAnterior}
+        >
+          Página Anterior
+        </button>
+      }
+      <button
+        onClick={() => carregarDados(proximaPagina)}
+        disabled={!proximaPagina}
+      >
+        Próxima Página
+      </button>
     </section>
   );
 };
